@@ -48,3 +48,6 @@ deploy_deps:
 	@echo "Installing deploy script dependencies"
 	@cd deploy && npm install
 	@echo ""
+
+install: ## install dependencies (ligo)
+	@ligo install

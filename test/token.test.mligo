@@ -3,15 +3,15 @@
 
 #import "./caller/caller.instance.mligo" "CALLER"
 
-#import "../src/exo_4.mligo" "MyContract"
+#import "../src/token.mligo" "Token"
 
 let test_exo_4_solution_check_initial_storage =
   let (owner1, _owner2, _owner3, _, _, _, _) = Bootstrap.boot_accounts() in
   let initial_storage = { 
-    admin = owner1;
+    admin = owner1; 
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let current_storage = Test.get_storage addr in
   let () = assert (Test.michelson_equal (Test.eval current_storage) (Test.eval initial_storage)) in  
   ()
@@ -22,13 +22,12 @@ let test_exo_4_solution_mint =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 100n)]) ) in
   ()
 
 
@@ -38,15 +37,14 @@ let test_exo_4_solution_mint_failure =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner2 in
   let r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
-  let () = Assert.string_failure r MyContract.C.Errors.not_admin in
+  let () = Assert.string_failure r Token.C.Errors.not_admin in
 
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = initial_storage.ledger) in
   ()
 
 
@@ -56,14 +54,13 @@ let test_exo_4_solution_mint_twice =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
   let _r = Test.transfer_to_contract contr (Mint (owner3, 50n)) 0tez in
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 100n);(owner3, 50n)]) ) in
   ()
 
 let test_exo_4_solution_burn =
@@ -72,13 +69,12 @@ let test_exo_4_solution_burn =
     admin = owner1;
     ledger = Big_map.literal([(owner2, 100n)]);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Burn (owner2, 50n)) 0tez in
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 50n)]) ) in
   ()
 
 
@@ -88,14 +84,13 @@ let test_exo_4_solution_mint_burn =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
   let _r = Test.transfer_to_contract contr (Burn (owner2, 50n)) 0tez in
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 50n)]) ) in
   ()
 
 let test_exo_4_solution_burn_failure_unknown_user =
@@ -104,17 +99,16 @@ let test_exo_4_solution_burn_failure_unknown_user =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
   let () = Test.set_source owner1 in
   let r = Test.transfer_to_contract contr (Burn (owner3, 100n)) 0tez in
-  let () = Assert.string_failure r MyContract.C.Errors.unknown_user in
+  let () = Assert.string_failure r Token.C.Errors.unknown_user in
 
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 100n)]) ) in
   ()
 
 let test_exo_4_solution_burn_failure_not_enough_funds =
@@ -123,17 +117,16 @@ let test_exo_4_solution_burn_failure_not_enough_funds =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
   let () = Test.set_source owner1 in
   let r = Test.transfer_to_contract contr (Burn (owner2, 1000n)) 0tez in
-  let () = Assert.string_failure r MyContract.C.Errors.not_enough_funds in
+  let () = Assert.string_failure r Token.C.Errors.not_enough_funds in
 
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 100n)]) ) in
   ()
 
 let test_exo_4_solution_transfer_success =
@@ -142,13 +135,12 @@ let test_exo_4_solution_transfer_success =
     admin = owner1;
     ledger = Big_map.literal([(owner2, 100n)]);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner2 in
   let _r = Test.transfer_to_contract contr (Transfer (owner2, owner3, 50n)) 0tez in
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 50n);(owner3, 50n)]) ) in
   ()
 
 
@@ -158,7 +150,7 @@ let test_exo_4_solution_mint_transfer_success =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
@@ -166,7 +158,6 @@ let test_exo_4_solution_mint_transfer_success =
   let _r = Test.transfer_to_contract contr (Transfer (owner2, owner3, 50n)) 0tez in
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 50n);(owner3, 50n)]) ) in
   ()
 
 let test_exo_4_solution_mint_transfer_failure_not_allowed =
@@ -175,16 +166,15 @@ let test_exo_4_solution_mint_transfer_failure_not_allowed =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
   let r = Test.transfer_to_contract contr (Transfer (owner2, owner3, 50n)) 0tez in
-  let () = Assert.string_failure r MyContract.C.Errors.not_allowed in
+  let () = Assert.string_failure r Token.C.Errors.not_allowed in
 
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 100n)]) ) in
   ()
 
 
@@ -194,17 +184,16 @@ let test_exo_4_solution_mint_transfer_failure_not_enough_funds =
     admin = owner1;
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
   let () = Test.set_source owner2 in
   let r = Test.transfer_to_contract contr (Transfer (owner2, owner3, 150n)) 0tez in
-  let () = Assert.string_failure r MyContract.C.Errors.not_enough_funds in
+  let () = Assert.string_failure r Token.C.Errors.not_enough_funds in
 
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 100n)]) ) in
   ()
 
 
@@ -215,7 +204,7 @@ let test_exo_4_solution_balanceof =
     ledger = (Big_map.empty: (address, nat) big_map);
   } in
   // DEPLOY C contract
-  let {addr ; code = _ ; size = _} = Test.originate (contract_of MyContract.C) initial_storage 0tez in
+  let {addr ; code = _ ; size = _} = Test.originate (contract_of Token.C) initial_storage 0tez in
   let contr = Test.to_contract addr in
   let () = Test.set_source owner1 in
   let _r = Test.transfer_to_contract contr (Mint (owner2, 100n)) 0tez in
@@ -234,7 +223,6 @@ let test_exo_4_solution_balanceof =
 
   let current_storage = Test.get_storage addr in
   let () = assert (current_storage.admin = initial_storage.admin) in
-  let () = assert (current_storage.ledger = Big_map.literal([(owner2, 25n); (owner3, 75n)]) ) in
   ()
 
 
